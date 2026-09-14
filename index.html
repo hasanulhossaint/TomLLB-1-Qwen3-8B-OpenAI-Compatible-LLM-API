@@ -1,0 +1,2236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="TomLLB#1 — Qwen3-8B OpenAI-Compatible API running on Google Colab NVIDIA T4." />
+  <title>TomLLB#1 — Qwen3-8B API Documentation</title>
+
+  <style>
+    :root {
+      --bg: #0b0d10;
+      --bg-soft: #101419;
+      --panel: #14191f;
+      --panel-hover: #1a2027;
+      --border: #252d36;
+      --text: #edf2f7;
+      --muted: #98a4b1;
+      --accent: #7dd3fc;
+      --accent-strong: #38bdf8;
+      --code: #080a0d;
+      --success: #86efac;
+      --warning: #facc15;
+      --danger: #f87171;
+      --sidebar-width: 280px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 30px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+        BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.7;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .app {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* =========================
+       SIDEBAR
+    ========================== */
+
+    .sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: var(--sidebar-width);
+      height: 100vh;
+      overflow-y: auto;
+      background: #0d1014;
+      border-right: 1px solid var(--border);
+      padding: 28px 20px;
+      z-index: 100;
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 5px;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .brand-icon {
+      font-size: 21px;
+    }
+
+    .sidebar-subtitle {
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 28px;
+    }
+
+    .nav-label {
+      color: #687582;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      margin: 22px 10px 8px;
+    }
+
+    .nav a {
+      display: block;
+      color: #aeb9c4;
+      font-size: 13px;
+      padding: 7px 10px;
+      margin: 2px 0;
+      border-radius: 7px;
+      transition: 0.18s ease;
+    }
+
+    .nav a:hover {
+      background: var(--panel-hover);
+      color: #fff;
+    }
+
+    .sidebar-footer {
+      margin-top: 35px;
+      padding: 15px 10px;
+      border-top: 1px solid var(--border);
+      color: #66727e;
+      font-size: 11px;
+    }
+
+    /* =========================
+       MAIN
+    ========================== */
+
+    .content {
+      width: calc(100% - var(--sidebar-width));
+      margin-left: var(--sidebar-width);
+    }
+
+    .container {
+      width: min(1050px, calc(100% - 80px));
+      margin: 0 auto;
+    }
+
+    /* =========================
+       HERO
+    ========================== */
+
+    .hero {
+      padding: 85px 0 65px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .hero h1 {
+      margin-top: 20px;
+      font-size: clamp(40px, 6vw, 64px);
+      line-height: 1.05;
+      letter-spacing: -2.5px;
+    }
+
+    .hero h1 span {
+      color: var(--accent);
+    }
+
+    .hero-lead {
+      max-width: 800px;
+      margin-top: 20px;
+      color: #bdc7d0;
+      font-size: 18px;
+      line-height: 1.8;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 26px;
+    }
+
+    .pill {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: #b7c2cc;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 11px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 30px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 8px 14px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      transition: 0.18s ease;
+    }
+
+    .button:hover {
+      background: var(--panel-hover);
+      transform: translateY(-1px);
+    }
+
+    .button.primary {
+      border-color: #2f6078;
+      background: #123244;
+      color: #dff6ff;
+    }
+
+    .button.download {
+      border-color: #355d46;
+      background: #14271d;
+      color: #b9f6cb;
+    }
+
+    /* =========================
+       SECTIONS
+    ========================== */
+
+    section {
+      padding: 58px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-kicker {
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      font-size: 30px;
+      line-height: 1.2;
+      letter-spacing: -0.8px;
+      margin-bottom: 18px;
+    }
+
+    h3 {
+      font-size: 19px;
+      line-height: 1.3;
+      margin: 30px 0 10px;
+    }
+
+    p {
+      color: #bec8d1;
+      margin: 10px 0;
+    }
+
+    .lead {
+      font-size: 16px;
+      max-width: 850px;
+    }
+
+    /* =========================
+       CARDS
+    ========================== */
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+    }
+
+    .card-icon {
+      font-size: 20px;
+      margin-bottom: 9px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .card-text {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    /* =========================
+       TABLE
+    ========================== */
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      margin-top: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    th {
+      background: #181e24;
+      color: #dce4eb;
+      font-weight: 700;
+    }
+
+    td {
+      color: #b9c4ce;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    /* =========================
+       CODE
+    ========================== */
+
+    pre {
+      position: relative;
+      overflow-x: auto;
+      margin: 15px 0;
+      padding: 17px;
+      background: var(--code);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      color: #dce5ec;
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono",
+        Menlo, monospace;
+    }
+
+    :not(pre) > code {
+      padding: 2px 5px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: #d5e4ee;
+      font-size: 0.9em;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 9px;
+      right: 9px;
+      border: 1px solid var(--border);
+      background: #12171c;
+      color: var(--muted);
+      padding: 4px 8px;
+      border-radius: 5px;
+      font-size: 10px;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      color: #fff;
+      background: #1a2027;
+    }
+
+    /* =========================
+       ENDPOINT
+    ========================== */
+
+    .endpoint {
+      margin-top: 25px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .endpoint-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 15px;
+      border-bottom: 1px solid var(--border);
+      background: #171c22;
+    }
+
+    .method {
+      display: inline-flex;
+      padding: 3px 7px;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 10px;
+      font-weight: 800;
+      background: #173a2a;
+      color: var(--success);
+    }
+
+    .method.post {
+      background: #3a2f17;
+      color: var(--warning);
+    }
+
+    .path {
+      font-family: monospace;
+      font-size: 14px;
+      color: #e2e9ef;
+    }
+
+    .endpoint-body {
+      padding: 15px;
+    }
+
+    /* =========================
+       CALLOUTS
+    ========================== */
+
+    .callout {
+      margin: 20px 0;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 7px;
+      background: var(--panel);
+    }
+
+    .callout.warning {
+      border-left-color: var(--warning);
+    }
+
+    .callout.danger {
+      border-left-color: var(--danger);
+    }
+
+    .callout.success {
+      border-left-color: var(--success);
+    }
+
+    .callout-title {
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 3px;
+    }
+
+    .callout p {
+      margin: 0;
+      font-size: 12px;
+    }
+
+    /* =========================
+       STEPS
+    ========================== */
+
+    .steps {
+      display: grid;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 14px;
+      padding: 16px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+    }
+
+    .step-number {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #35566a;
+      border-radius: 7px;
+      background: #102631;
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .step h3 {
+      margin: 0 0 4px;
+      font-size: 15px;
+    }
+
+    .step p {
+      margin: 0;
+      font-size: 12px;
+    }
+
+    /* =========================
+       SCREENSHOTS
+    ========================== */
+
+    .screenshots {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+      margin-top: 25px;
+    }
+
+    .screenshot-card {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel);
+    }
+
+    .screenshot-card img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 430px;
+      object-fit: contain;
+      background: #080a0d;
+      cursor: zoom-in;
+      transition: 0.2s ease;
+    }
+
+    .screenshot-card img:hover {
+      opacity: 0.88;
+    }
+
+    .screenshot-info {
+      padding: 12px 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    .screenshot-title {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .screenshot-path {
+      margin-top: 3px;
+      color: var(--muted);
+      font-family: monospace;
+      font-size: 10px;
+    }
+
+    /* =========================
+       IMAGE MODAL
+    ========================== */
+
+    .image-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+      background: rgba(0, 0, 0, 0.88);
+    }
+
+    .image-modal.active {
+      display: flex;
+    }
+
+    .image-modal img {
+      max-width: 95vw;
+      max-height: 90vh;
+      object-fit: contain;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .modal-close {
+      position: fixed;
+      top: 18px;
+      right: 22px;
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      background: #14191f;
+      color: #fff;
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    /* =========================
+       DOWNLOAD CARD
+    ========================== */
+
+    .download-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-top: 24px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel);
+    }
+
+    .download-card-title {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .download-card-text {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    .download-link {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 14px;
+      border: 1px solid #355d46;
+      border-radius: 7px;
+      background: #14271d;
+      color: #b9f6cb;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .download-link:hover {
+      background: #193222;
+    }
+
+    /* =========================
+       LIST
+    ========================== */
+
+    ul {
+      margin: 15px 0 15px 20px;
+      color: #bcc6cf;
+    }
+
+    li {
+      margin: 5px 0;
+    }
+
+    /* =========================
+       FOOTER
+    ========================== */
+
+    footer {
+      padding: 40px 0 65px;
+      color: #697682;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    /* =========================
+       MOBILE
+    ========================== */
+
+    .mobile-header {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      :root {
+        --sidebar-width: 240px;
+      }
+
+      .cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .container {
+        width: min(100% - 45px, 900px);
+      }
+    }
+
+    @media (max-width: 720px) {
+      .sidebar {
+        display: none;
+      }
+
+      .content {
+        width: 100%;
+        margin-left: 0;
+      }
+
+      .mobile-header {
+        display: flex;
+        position: sticky;
+        top: 0;
+        z-index: 90;
+        align-items: center;
+        justify-content: space-between;
+        padding: 13px 18px;
+        background: rgba(13, 16, 20, 0.95);
+        border-bottom: 1px solid var(--border);
+        backdrop-filter: blur(12px);
+      }
+
+      .mobile-brand {
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .mobile-nav {
+        border: 1px solid var(--border);
+        background: var(--panel);
+        color: var(--muted);
+        border-radius: 6px;
+        padding: 5px 8px;
+        font-size: 11px;
+      }
+
+      .container {
+        width: calc(100% - 34px);
+      }
+
+      .hero {
+        padding: 55px 0 45px;
+      }
+
+      .hero h1 {
+        font-size: 42px;
+      }
+
+      .cards,
+      .screenshots {
+        grid-template-columns: 1fr;
+      }
+
+      .download-card {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      section {
+        padding: 45px 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- MOBILE HEADER -->
+  <div class="mobile-header">
+    <div class="mobile-brand">🌿 TomLLB#1</div>
+    <a class="mobile-nav" href="#api">API Reference</a>
+  </div>
+
+  <div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+      <div class="sidebar-brand">
+        <span class="brand-icon">🌿</span>
+        <span>TomLLB#1</span>
+      </div>
+
+      <div class="sidebar-subtitle">
+        Qwen3-8B OpenAI-Compatible API
+      </div>
+
+      <div class="nav-label">Documentation</div>
+
+      <nav class="nav">
+        <a href="#overview">Overview</a>
+        <a href="#features">Features</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#requirements">Requirements</a>
+        <a href="#quick-start">Quick Start</a>
+        <a href="#model">Model & Quantization</a>
+        <a href="#api">API Reference</a>
+        <a href="#authentication">Authentication</a>
+        <a href="#cloudflare">Public Endpoint</a>
+        <a href="#clients">Client Examples</a>
+        <a href="#agent">AI Agent Integration</a>
+        <a href="#screenshots">Screenshots</a>
+        <a href="#troubleshooting">Troubleshooting</a>
+        <a href="#limitations">Limitations</a>
+      </nav>
+
+      <div class="nav-label">Project</div>
+
+      <nav class="nav">
+        <a href="#download">Download</a>
+        <a href="#configuration">Configuration</a>
+        <a href="#workflow">Workflow</a>
+        <a href="#security">Security</a>
+        <a href="#credits">Technologies</a>
+      </nav>
+
+      <div class="sidebar-footer">
+        Built for experimentation,<br />
+        prototyping & LLM integration.
+      </div>
+
+    </aside>
+
+    <!-- MAIN -->
+    <main class="content">
+
+      <div class="container">
+
+        <!-- HERO -->
+        <header class="hero" id="overview">
+
+          <div class="eyebrow">
+            ● Experimental LLM Deployment
+          </div>
+
+          <h1>
+            TomLLB<span>#1</span>
+          </h1>
+
+          <p class="hero-lead">
+            Run Qwen3-8B on a Google Colab NVIDIA T4 using
+            4-bit NF4 quantization and expose it as a temporary
+            OpenAI-compatible API through Cloudflare Quick Tunnel.
+          </p>
+
+          <div class="hero-meta">
+            <span class="pill">Qwen3-8B</span>
+            <span class="pill">Google Colab</span>
+            <span class="pill">NVIDIA T4</span>
+            <span class="pill">4-bit NF4</span>
+            <span class="pill">FastAPI</span>
+            <span class="pill">Cloudflare</span>
+          </div>
+
+          <div class="hero-actions">
+
+            <a class="button primary" href="#quick-start">
+              Get Started
+            </a>
+
+            <a class="button" href="#api">
+              API Reference
+            </a>
+
+            <a class="button" href="#screenshots">
+              Screenshots
+            </a>
+
+            <a
+              class="button download"
+              href="Qwen3-8B-OpenAI-API-T4.ipynb"
+              download
+            >
+              ↓ Download Notebook
+            </a>
+
+          </div>
+
+        </header>
+
+        <!-- FEATURES -->
+        <section id="features">
+
+          <div class="section-kicker">Overview</div>
+
+          <h2>What is TomLLB#1?</h2>
+
+          <p class="lead">
+            TomLLB#1 is a lightweight experimental LLM deployment
+            that turns a Google Colab NVIDIA T4 runtime into a
+            temporary remote inference backend for Qwen3-8B.
+          </p>
+
+          <p>
+            The model is loaded using Hugging Face Transformers and
+            bitsandbytes with 4-bit NF4 quantization. A custom
+            FastAPI server exposes OpenAI-compatible endpoints,
+            while Cloudflare Quick Tunnel provides temporary public
+            HTTPS access.
+          </p>
+
+          <div class="cards">
+
+            <div class="card">
+              <div class="card-icon">🧠</div>
+              <div class="card-title">Qwen3-8B</div>
+              <div class="card-text">
+                Runs the Qwen3-8B causal language model using
+                Hugging Face Transformers.
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-icon">⚡</div>
+              <div class="card-title">4-bit NF4</div>
+              <div class="card-text">
+                Uses 4-bit NF4 quantization with FP16 compute
+                to reduce model memory requirements.
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-icon">🔌</div>
+              <div class="card-title">OpenAI-Compatible API</div>
+              <div class="card-text">
+                Provides familiar model and chat-completion
+                endpoints for compatible clients.
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-icon">🔐</div>
+              <div class="card-title">Bearer Authentication</div>
+              <div class="card-text">
+                Protected API endpoints require a Bearer API key.
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-icon">🌐</div>
+              <div class="card-title">Public HTTPS Tunnel</div>
+              <div class="card-text">
+                Cloudflare Quick Tunnel exposes the local FastAPI
+                server through a temporary HTTPS URL.
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-icon">🤖</div>
+              <div class="card-title">AI-Agent Ready</div>
+              <div class="card-text">
+                The API can be used as a temporary inference backend
+                by compatible external applications and agents.
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- ARCHITECTURE -->
+        <section id="architecture">
+
+          <div class="section-kicker">System Design</div>
+
+          <h2>Architecture</h2>
+
+          <p>
+            The deployment connects the Google Colab GPU runtime,
+            quantized model, FastAPI service, Cloudflare tunnel and
+            external client or AI agent.
+          </p>
+
+<pre><code>┌────────────────────────────────────┐
+│          Google Colab              │
+│                                    │
+│          NVIDIA T4 GPU             │
+│                 │                  │
+│                 ▼                  │
+│            Qwen3-8B                │
+│                 │                  │
+│          4-bit NF4                 │
+│          Quantization              │
+│                 │                  │
+│                 ▼                  │
+│       Transformers Inference       │
+│                 │                  │
+│                 ▼                  │
+│          FastAPI Server            │
+│                 │                  │
+│       OpenAI-Compatible API        │
+└─────────────────┼──────────────────┘
+                  │
+                  ▼
+       Cloudflare Quick Tunnel
+                  │
+                  ▼
+          Temporary HTTPS URL
+                  │
+            ┌─────┴─────┐
+            ▼           ▼
+         AI Agent    API Client</code></pre>
+
+          <h3>Request Flow</h3>
+
+<pre><code>Client / AI Agent
+       │
+       │ HTTPS request
+       ▼
+Cloudflare Quick Tunnel
+       │
+       │ HTTP
+       ▼
+FastAPI :8000
+       │
+       ▼
+Qwen3-8B
+       │
+       ▼
+Generated Response
+       │
+       ▼
+Client / AI Agent</code></pre>
+
+        </section>
+
+        <!-- REQUIREMENTS -->
+        <section id="requirements">
+
+          <div class="section-kicker">Environment</div>
+
+          <h2>Requirements</h2>
+
+          <div class="table-wrap">
+
+            <table>
+
+              <thead>
+                <tr>
+                  <th>Requirement</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+
+              <tbody>
+
+                <tr>
+                  <td>Runtime</td>
+                  <td>Google Colab</td>
+                </tr>
+
+                <tr>
+                  <td>Accelerator</td>
+                  <td>NVIDIA GPU</td>
+                </tr>
+
+                <tr>
+                  <td>Recommended GPU</td>
+                  <td>NVIDIA T4</td>
+                </tr>
+
+                <tr>
+                  <td>Model</td>
+                  <td><code>Qwen/Qwen3-8B</code></td>
+                </tr>
+
+                <tr>
+                  <td>Python</td>
+                  <td>Python 3</td>
+                </tr>
+
+                <tr>
+                  <td>Internet</td>
+                  <td>Required</td>
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </section>
+
+        <!-- QUICK START -->
+        <section id="quick-start">
+
+          <div class="section-kicker">Getting Started</div>
+
+          <h2>Quick Start</h2>
+
+          <div class="steps">
+
+            <div class="step">
+              <div class="step-number">01</div>
+              <div>
+                <h3>Download the notebook</h3>
+                <p>
+                  Download
+                  <code>Qwen3-8B-OpenAI-API-T4.ipynb</code>
+                  from this documentation page.
+                </p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-number">02</div>
+              <div>
+                <h3>Open in Google Colab</h3>
+                <p>
+                  Upload the downloaded notebook to Google Colab.
+                </p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-number">03</div>
+              <div>
+                <h3>Select a GPU runtime</h3>
+                <p>
+                  Select
+                  <code>Runtime → Change runtime type → GPU</code>.
+                  NVIDIA T4 is recommended.
+                </p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-number">04</div>
+              <div>
+                <h3>Run the notebook</h3>
+                <p>
+                  Run the cells in order. Dependencies, model loading,
+                  API server, Cloudflare tunnel and tests are handled
+                  by the notebook.
+                </p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-number">05</div>
+              <div>
+                <h3>Copy the public API URL</h3>
+                <p>
+                  After the Cloudflare tunnel starts, copy the generated
+                  <code>trycloudflare.com</code> URL.
+                </p>
+              </div>
+            </div>
+
+            <div class="step">
+              <div class="step-number">06</div>
+              <div>
+                <h3>Connect your client</h3>
+                <p>
+                  Use the public URL as the OpenAI-compatible API
+                  base URL.
+                </p>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- MODEL -->
+        <section id="model">
+
+          <div class="section-kicker">Inference</div>
+
+          <h2>Model & Quantization</h2>
+
+          <p>
+            TomLLB#1 uses Qwen3-8B with a 4-bit NF4
+            BitsAndBytes configuration.
+          </p>
+
+          <div class="table-wrap">
+
+            <table>
+
+              <thead>
+                <tr>
+                  <th>Setting</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+
+              <tbody>
+
+                <tr>
+                  <td>Model</td>
+                  <td><code>Qwen/Qwen3-8B</code></td>
+                </tr>
+
+                <tr>
+                  <td>API Model ID</td>
+                  <td><code>Qwen3-8B</code></td>
+                </tr>
+
+                <tr>
+                  <td>Quantization</td>
+                  <td>4-bit</td>
+                </tr>
+
+                <tr>
+                  <td>Quantization Type</td>
+                  <td>NF4</td>
+                </tr>
+
+                <tr>
+                  <td>Compute dtype</td>
+                  <td><code>torch.float16</code></td>
+                </tr>
+
+                <tr>
+                  <td>Double Quantization</td>
+                  <td>Enabled</td>
+                </tr>
+
+                <tr>
+                  <td>Device Mapping</td>
+                  <td><code>auto</code></td>
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+<pre><code>quant_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.float16,
+    bnb_4bit_use_double_quant=True,
+)</code></pre>
+
+        </section>
+
+        <!-- CONFIGURATION -->
+        <section id="configuration">
+
+          <div class="section-kicker">Configuration</div>
+
+          <h2>Configuration</h2>
+
+<pre><code>BRAND_NAME = "TomLLB#1"
+DEVELOPER_NAME = "Md. Hassanul Hossain Tomal"
+MODEL_NAME = "Qwen/Qwen3-8B"
+MODEL_ID = "Qwen3-8B"
+API_KEY = "YOUR_API_KEY"
+PORT = 8000</code></pre>
+
+          <div class="table-wrap">
+
+            <table>
+
+              <thead>
+                <tr>
+                  <th>Variable</th>
+                  <th>Purpose</th>
+                </tr>
+              </thead>
+
+              <tbody>
+
+                <tr>
+                  <td><code>BRAND_NAME</code></td>
+                  <td>API branding</td>
+                </tr>
+
+                <tr>
+                  <td><code>DEVELOPER_NAME</code></td>
+                  <td>Developer information</td>
+                </tr>
+
+                <tr>
+                  <td><code>MODEL_NAME</code></td>
+                  <td>Hugging Face model identifier</td>
+                </tr>
+
+                <tr>
+                  <td><code>MODEL_ID</code></td>
+                  <td>API-facing model identifier</td>
+                </tr>
+
+                <tr>
+                  <td><code>API_KEY</code></td>
+                  <td>Bearer authentication key</td>
+                </tr>
+
+                <tr>
+                  <td><code>PORT</code></td>
+                  <td>Local FastAPI port</td>
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </section>
+
+        <!-- API -->
+        <section id="api">
+
+          <div class="section-kicker">API Reference</div>
+
+          <h2>API Reference</h2>
+
+          <p>
+            TomLLB#1 provides a small OpenAI-compatible API surface
+            for model discovery and chat completion requests.
+          </p>
+
+          <!-- HEALTH -->
+          <div class="endpoint">
+
+            <div class="endpoint-header">
+              <span class="method">GET</span>
+              <span class="path">/health</span>
+            </div>
+
+            <div class="endpoint-body">
+
+              <p>
+                Returns service health information.
+              </p>
+
+<pre><code>curl https://YOUR-URL.trycloudflare.com/health</code></pre>
+
+<pre><code>{
+  "status": "ok",
+  "brand": "TomLLB#1",
+  "model": "Qwen3-8B"
+}</code></pre>
+
+            </div>
+
+          </div>
+
+          <!-- MODELS -->
+          <div class="endpoint">
+
+            <div class="endpoint-header">
+              <span class="method">GET</span>
+              <span class="path">/v1/models</span>
+            </div>
+
+            <div class="endpoint-body">
+
+<pre><code>curl \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  https://YOUR-URL.trycloudflare.com/v1/models</code></pre>
+
+<pre><code>{
+  "object": "list",
+  "data": [
+    {
+      "id": "Qwen3-8B",
+      "object": "model",
+      "created": 0,
+      "owned_by": "TomLLB#1"
+    }
+  ]
+}</code></pre>
+
+            </div>
+
+          </div>
+
+          <!-- CHAT -->
+          <div class="endpoint">
+
+            <div class="endpoint-header">
+              <span class="method post">POST</span>
+              <span class="path">/v1/chat/completions</span>
+            </div>
+
+            <div class="endpoint-body">
+
+              <p>
+                Primary inference endpoint.
+              </p>
+
+              <h3>Request</h3>
+
+<pre><code>{
+  "model": "Qwen3-8B",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hello!"
+    }
+  ],
+  "max_tokens": 200,
+  "temperature": 0.7,
+  "top_p": 0.9,
+  "stream": false
+}</code></pre>
+
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- AUTH -->
+        <section id="authentication">
+
+          <div class="section-kicker">Security</div>
+
+          <h2>Authentication</h2>
+
+          <p>
+            Protected API endpoints use Bearer-token authentication.
+          </p>
+
+<pre><code>Authorization: Bearer YOUR_API_KEY</code></pre>
+
+          <div class="callout danger">
+
+            <div class="callout-title">
+              Never publish your real API key
+            </div>
+
+            <p>
+              Do not commit a real API key to GitHub. Replace it with
+              a placeholder before publishing the notebook or source.
+            </p>
+
+          </div>
+
+        </section>
+
+        <!-- CLOUDFLARE -->
+        <section id="cloudflare">
+
+          <div class="section-kicker">Networking</div>
+
+          <h2>Public HTTPS Endpoint</h2>
+
+          <p>
+            Cloudflare Quick Tunnel exposes the local FastAPI server
+            through a temporary HTTPS URL.
+          </p>
+
+<pre><code>cloudflared tunnel \
+  --url http://127.0.0.1:8000 \
+  --no-autoupdate</code></pre>
+
+          <h3>Example</h3>
+
+<pre><code>https://random-name.trycloudflare.com</code></pre>
+
+          <h3>OpenAI-compatible Base URL</h3>
+
+<pre><code>https://random-name.trycloudflare.com/v1</code></pre>
+
+          <div class="callout warning">
+
+            <div class="callout-title">
+              Temporary endpoint
+            </div>
+
+            <p>
+              The public URL can change when the Colab runtime or
+              Cloudflare tunnel is restarted.
+            </p>
+
+          </div>
+
+        </section>
+
+        <!-- CLIENTS -->
+        <section id="clients">
+
+          <div class="section-kicker">Integration</div>
+
+          <h2>Client Examples</h2>
+
+          <h3>Python — OpenAI-Compatible Client</h3>
+
+<pre><code>from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://YOUR-URL.trycloudflare.com/v1",
+    api_key="YOUR_API_KEY",
+)
+
+response = client.chat.completions.create(
+    model="Qwen3-8B",
+    messages=[
+        {
+            "role": "user",
+            "content": "Hello!"
+        }
+    ],
+)
+
+print(response.choices[0].message.content)</code></pre>
+
+          <h3>cURL</h3>
+
+<pre><code>curl -X POST \
+  "https://YOUR-URL.trycloudflare.com/v1/chat/completions" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "model": "Qwen3-8B",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello!"
+      }
+    ],
+    "max_tokens": 200,
+    "temperature": 0.7
+  }'</code></pre>
+
+        </section>
+
+        <!-- AGENT -->
+        <section id="agent">
+
+          <div class="section-kicker">AI Integration</div>
+
+          <h2>AI Agent Integration</h2>
+
+          <p>
+            The public OpenAI-compatible endpoint can be used as a
+            temporary inference backend for compatible AI agents
+            and applications.
+          </p>
+
+<pre><code>┌─────────────────────┐
+│      AI Agent       │
+└──────────┬──────────┘
+           │
+           │ OpenAI-compatible request
+           ▼
+┌─────────────────────┐
+│   Public HTTPS URL  │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│ Cloudflare Quick    │
+│       Tunnel        │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│      FastAPI        │
+│      /v1 API        │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│      Qwen3-8B       │
+│     NVIDIA T4       │
+└─────────────────────┘</code></pre>
+
+          <div class="table-wrap">
+
+            <table>
+
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+
+              <tbody>
+
+                <tr>
+                  <td>Base URL</td>
+                  <td><code>https://YOUR-URL.trycloudflare.com/v1</code></td>
+                </tr>
+
+                <tr>
+                  <td>Model</td>
+                  <td><code>Qwen3-8B</code></td>
+                </tr>
+
+                <tr>
+                  <td>Authentication</td>
+                  <td>Bearer API Key</td>
+                </tr>
+
+                <tr>
+                  <td>Chat Endpoint</td>
+                  <td><code>/v1/chat/completions</code></td>
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </section>
+
+        <!-- WORKFLOW -->
+        <section id="workflow">
+
+          <div class="section-kicker">Pipeline</div>
+
+          <h2>Notebook Workflow</h2>
+
+          <div class="table-wrap">
+
+            <table>
+
+              <thead>
+                <tr>
+                  <th>Step</th>
+                  <th>Component</th>
+                  <th>Purpose</th>
+                </tr>
+              </thead>
+
+              <tbody>
+
+                <tr>
+                  <td>1</td>
+                  <td>GPU Check</td>
+                  <td>Verify CUDA and GPU availability</td>
+                </tr>
+
+                <tr>
+                  <td>2</td>
+                  <td>Dependencies</td>
+                  <td>Install required libraries</td>
+                </tr>
+
+                <tr>
+                  <td>3</td>
+                  <td>Configuration</td>
+                  <td>Configure model and API</td>
+                </tr>
+
+                <tr>
+                  <td>4</td>
+                  <td>Model Loading</td>
+                  <td>Load Qwen3-8B</td>
+                </tr>
+
+                <tr>
+                  <td>5</td>
+                  <td>Quantization</td>
+                  <td>Apply 4-bit NF4</td>
+                </tr>
+
+                <tr>
+                  <td>6</td>
+                  <td>FastAPI</td>
+                  <td>Start API server</td>
+                </tr>
+
+                <tr>
+                  <td>7</td>
+                  <td>Cloudflare</td>
+                  <td>Create public HTTPS endpoint</td>
+                </tr>
+
+                <tr>
+                  <td>8</td>
+                  <td>Testing</td>
+                  <td>Verify API endpoints</td>
+                </tr>
+
+                <tr>
+                  <td>9</td>
+                  <td>Integration</td>
+                  <td>Connect clients or AI agents</td>
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </section>
+
+        <!-- SCREENSHOTS -->
+        <section id="screenshots">
+
+          <div class="section-kicker">Visual Guide</div>
+
+          <h2>Screenshots</h2>
+
+          <p>
+            The screenshots below are loaded directly from the
+            repository's <code>screenshots/</code> folder.
+            Make sure the filenames remain exactly the same.
+          </p>
+
+          <div class="screenshots">
+
+            <div class="screenshot-card">
+
+              <img
+                src="screenshots/colab-t4-runtime.png"
+                alt="Google Colab NVIDIA T4 runtime"
+                loading="lazy"
+                onclick="openImage(this.src)"
+              />
+
+              <div class="screenshot-info">
+                <div class="screenshot-title">
+                  Google Colab T4 Runtime
+                </div>
+
+                <div class="screenshot-path">
+                  screenshots/colab-t4-runtime.png
+                </div>
+              </div>
+
+            </div>
+
+            <div class="screenshot-card">
+
+              <img
+                src="screenshots/qwen3-model-loaded.png"
+                alt="Qwen3-8B model loaded"
+                loading="lazy"
+                onclick="openImage(this.src)"
+              />
+
+              <div class="screenshot-info">
+                <div class="screenshot-title">
+                  Qwen3-8B Model Loaded
+                </div>
+
+                <div class="screenshot-path">
+                  screenshots/qwen3-model-loaded.png
+                </div>
+              </div>
+
+            </div>
+
+            <div class="screenshot-card">
+
+              <img
+                src="screenshots/api-ready.png"
+                alt="TomLLB API ready"
+                loading="lazy"
+                onclick="openImage(this.src)"
+              />
+
+              <div class="screenshot-info">
+                <div class="screenshot-title">
+                  API Ready
+                </div>
+
+                <div class="screenshot-path">
+                  screenshots/api-ready.png
+                </div>
+              </div>
+
+            </div>
+
+            <div class="screenshot-card">
+
+              <img
+                src="screenshots/api-test.png"
+                alt="TomLLB API test"
+                loading="lazy"
+                onclick="openImage(this.src)"
+              />
+
+              <div class="screenshot-info">
+                <div class="screenshot-title">
+                  API Test Passed
+                </div>
+
+                <div class="screenshot-path">
+                  screenshots/api-test.png
+                </div>
+              </div>
+
+            </div>
+
+            <div class="screenshot-card">
+
+              <img
+                src="screenshots/agent-integration.png"
+                alt="AI agent integration"
+                loading="lazy"
+                onclick="openImage(this.src)"
+              />
+
+              <div class="screenshot-info">
+                <div class="screenshot-title">
+                  AI Agent Integration
+                </div>
+
+                <div class="screenshot-path">
+                  screenshots/agent-integration.png
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <div class="callout success">
+
+            <div class="callout-title">
+              Screenshot folder structure
+            </div>
+
+<pre><code>screenshots/
+├── colab-t4-runtime.png
+├── qwen3-model-loaded.png
+├── api-ready.png
+├── api-test.png
+└── agent-integration.png</code></pre>
+
+          </div>
+
+        </section>
+
+        <!-- DOWNLOAD -->
+        <section id="download">
+
+          <div class="section-kicker">Project Files</div>
+
+          <h2>Download</h2>
+
+          <p>
+            Download the complete Google Colab notebook and run
+            the project directly in Google Colab.
+          </p>
+
+          <div class="download-card">
+
+            <div>
+              <div class="download-card-title">
+                Qwen3-8B-OpenAI-API-T4.ipynb
+              </div>
+
+              <div class="download-card-text">
+                Google Colab notebook for the complete TomLLB#1
+                Qwen3-8B API deployment.
+              </div>
+            </div>
+
+            <a
+              class="download-link"
+              href="Qwen3-8B-OpenAI-API-T4.ipynb"
+              download
+            >
+              ↓ Download .ipynb
+            </a>
+
+          </div>
+
+          <h3>Repository Structure</h3>
+
+<pre><code>tomllb1-qwen3-8b-api/
+│
+├── Qwen3-8B-OpenAI-API-T4.ipynb
+│
+├── screenshots/
+│   ├── colab-t4-runtime.png
+│   ├── qwen3-model-loaded.png
+│   ├── api-ready.png
+│   ├── api-test.png
+│   └── agent-integration.png
+│
+├── README.md
+│
+└── index.html</code></pre>
+
+        </section>
+
+        <!-- SECURITY -->
+        <section id="security">
+
+          <div class="section-kicker">Security</div>
+
+          <h2>Security Considerations</h2>
+
+          <ul>
+            <li>
+              Never publish a real API key in the GitHub repository.
+            </li>
+
+            <li>
+              Use environment variables or another secret-management
+              method for credentials.
+            </li>
+
+            <li>
+              Avoid sending sensitive or private information through
+              an experimental public endpoint.
+            </li>
+
+            <li>
+              Use a strong randomly generated API key.
+            </li>
+
+            <li>
+              Consider rate limiting for public deployments.
+            </li>
+
+            <li>
+              For production workloads, use proper cloud infrastructure
+              instead of a temporary Colab runtime.
+            </li>
+          </ul>
+
+          <div class="callout danger">
+
+            <div class="callout-title">
+              Public endpoint warning
+            </div>
+
+            <p>
+              Cloudflare Quick Tunnel makes the local service publicly
+              reachable. Treat the endpoint as an experimental public
+              service.
+            </p>
+
+          </div>
+
+        </section>
+
+        <!-- TROUBLESHOOTING -->
+        <section id="troubleshooting">
+
+          <div class="section-kicker">Support</div>
+
+          <h2>Troubleshooting</h2>
+
+          <h3>GPU not detected</h3>
+
+<pre><code>Runtime
+→ Change runtime type
+→ GPU</code></pre>
+
+          <h3>Model loading fails</h3>
+
+          <ul>
+            <li>Confirm that a GPU runtime is active.</li>
+            <li>Check that all packages installed successfully.</li>
+            <li>Restart the Colab runtime and run again.</li>
+            <li>Confirm that the model can be downloaded.</li>
+          </ul>
+
+          <h3>Cloudflare URL is not generated</h3>
+
+          <p>
+            Re-run the Cloudflare tunnel cell and wait for a
+            <code>trycloudflare.com</code> URL.
+          </p>
+
+<pre><code>RuntimeError:
+Could not obtain a Cloudflare URL. Re-run this cell.</code></pre>
+
+          <h3>401 Unauthorized</h3>
+
+<pre><code>Authorization: Bearer YOUR_API_KEY</code></pre>
+
+          <h3>404 Unknown model</h3>
+
+          <p>
+            Use the API model ID:
+            <code>Qwen3-8B</code>
+          </p>
+
+        </section>
+
+        <!-- LIMITATIONS -->
+        <section id="limitations">
+
+          <div class="section-kicker">Important</div>
+
+          <h2>Limitations</h2>
+
+          <ul>
+            <li>Google Colab sessions can disconnect or terminate.</li>
+            <li>GPU availability depends on Colab capacity and account.</li>
+            <li>The Cloudflare Quick Tunnel URL is temporary.</li>
+            <li>The public endpoint stops when the runtime stops.</li>
+            <li>Performance depends on GPU availability and generation length.</li>
+            <li>This project is intended for experimentation and prototyping.</li>
+            <li>It is not intended to replace a production inference server.</li>
+          </ul>
+
+        </section>
+
+        <!-- TECHNOLOGIES -->
+        <section id="credits">
+
+          <div class="section-kicker">Technology</div>
+
+          <h2>Technologies</h2>
+
+          <div class="table-wrap">
+
+            <table>
+
+              <thead>
+                <tr>
+                  <th>Technology</th>
+                  <th>Role</th>
+                </tr>
+              </thead>
+
+              <tbody>
+
+                <tr>
+                  <td>Qwen3-8B</td>
+                  <td>Language model</td>
+                </tr>
+
+                <tr>
+                  <td>PyTorch</td>
+                  <td>GPU computation</td>
+                </tr>
+
+                <tr>
+                  <td>Hugging Face Transformers</td>
+                  <td>Model loading and inference</td>
+                </tr>
+
+                <tr>
+                  <td>bitsandbytes</td>
+                  <td>4-bit NF4 quantization</td>
+                </tr>
+
+                <tr>
+                  <td>FastAPI</td>
+                  <td>API server</td>
+                </tr>
+
+                <tr>
+                  <td>Uvicorn</td>
+                  <td>ASGI server</td>
+                </tr>
+
+                <tr>
+                  <td>Cloudflare cloudflared</td>
+                  <td>Temporary HTTPS tunnel</td>
+                </tr>
+
+                <tr>
+                  <td>Google Colab</td>
+                  <td>GPU notebook runtime</td>
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </section>
+
+        <!-- SUMMARY -->
+        <section>
+
+          <div class="section-kicker">Summary</div>
+
+          <h2>Project at a Glance</h2>
+
+<pre><code>Qwen3-8B
+    +
+4-bit NF4 Quantization
+    +
+NVIDIA T4
+    +
+Google Colab
+    +
+FastAPI
+    +
+OpenAI-Compatible API
+    +
+Bearer Authentication
+    +
+Cloudflare Quick Tunnel
+    =
+TomLLB#1</code></pre>
+
+          <p class="lead">
+            TomLLB#1 demonstrates how Qwen3-8B can be run inside a
+            Google Colab T4 environment, served through a custom
+            OpenAI-compatible FastAPI layer, and temporarily exposed
+            over HTTPS for external client and AI-agent use.
+          </p>
+
+        </section>
+
+        <footer>
+          TomLLB#1 · Qwen3-8B OpenAI-Compatible API ·
+          Experimental LLM Deployment
+        </footer>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- IMAGE MODAL -->
+  <div
+    class="image-modal"
+    id="imageModal"
+    onclick="closeImage(event)"
+  >
+    <button
+      class="modal-close"
+      onclick="closeImage()"
+      aria-label="Close image"
+    >
+      ×
+    </button>
+
+    <img id="modalImage" src="" alt="Screenshot preview" />
+  </div>
+
+  <script>
+    /* Copy buttons */
+    document.querySelectorAll("pre").forEach((pre) => {
+
+      const button = document.createElement("button");
+
+      button.className = "copy-btn";
+      button.textContent = "Copy";
+
+      button.addEventListener("click", async (event) => {
+
+        event.stopPropagation();
+
+        const code = pre.querySelector("code");
+
+        if (!code) return;
+
+        try {
+
+          await navigator.clipboard.writeText(code.innerText);
+
+          button.textContent = "Copied";
+
+          setTimeout(() => {
+            button.textContent = "Copy";
+          }, 1400);
+
+        } catch {
+
+          button.textContent = "Failed";
+
+          setTimeout(() => {
+            button.textContent = "Copy";
+          }, 1400);
+
+        }
+
+      });
+
+      pre.appendChild(button);
+
+    });
+
+
+    /* Screenshot modal */
+
+    function openImage(src) {
+
+      const modal = document.getElementById("imageModal");
+      const image = document.getElementById("modalImage");
+
+      image.src = src;
+
+      modal.classList.add("active");
+
+      document.body.style.overflow = "hidden";
+
+    }
+
+
+    function closeImage(event) {
+
+      if (
+        event &&
+        event.target &&
+        event.target.id !== "imageModal" &&
+        event.target.className !== "modal-close"
+      ) {
+        return;
+      }
+
+      const modal = document.getElementById("imageModal");
+
+      modal.classList.remove("active");
+
+      document.getElementById("modalImage").src = "";
+
+      document.body.style.overflow = "";
+
+    }
+
+
+    /* ESC closes screenshot */
+
+    document.addEventListener("keydown", (event) => {
+
+      if (event.key === "Escape") {
+
+        const modal = document.getElementById("imageModal");
+
+        modal.classList.remove("active");
+
+        document.getElementById("modalImage").src = "";
+
+        document.body.style.overflow = "";
+
+      }
+
+    });
+  </script>
+
+</body>
+</html>
